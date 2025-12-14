@@ -1,0 +1,75 @@
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+  
+  back:
+    build: .
+    container_name: back
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "mysql://appuser:apppass@mysql:3306/appdb"
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 3s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - shared_output:/shared
+      - /srv/broker-secrets/master.key:/etc/broker/master.key:ro
+
+  init:
+    build:
+      context: ./init
+    container_name: init-script
+    depends_on:
+      mysql:
+        condition: service_healthy
+      back:
+        condition: service_healthy
+    command: ["python3", "create_database.py", "create_all"]
+    restart: "no"
+    volumes:
+      - shared_output:/shared
+
+  bitcoin-node:
+    image: ruimarinho/bitcoin-core:latest
+    container_name: bitcoin-node
+    ports:
+      - "18443:18443"   # RPC port for regtest
+      - "18444:18444"   # P2P port for regtest
+    volumes:
+      - bitcoin-data:/bitcoin/.bitcoin
+    command:
+      -printtoconsole
+      -regtest
+      -server=1
+      -rpcallowip=0.0.0.0/0
+      -rpcuser=miusuario
+      -rpcpassword=mipasswordseguro
+      -rpcbind=0.0.0.0
+      -deprecatedrpc=accounts
+
+volumes:
+  mysql_data:
+  shared_output:
+  bitcoin-data:

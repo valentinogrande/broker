@@ -1,0 +1,1 @@
+it is crucial for the project to first run the generate_master_key.sh and secondly doing the docker compose build and run.
