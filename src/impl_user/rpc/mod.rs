@@ -1,1 +1,1 @@
-pub mod generate_wallet;
+pub mod make_transaction;

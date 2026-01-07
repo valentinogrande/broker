@@ -128,8 +128,8 @@ create table if not exists wallets (
   
   user_id bigint unsigned not null,
 
-  encrypted_seed blob not null,
-  seed_nonce binary(12) not null,
+  encrypted_entropy blob not null,
+  entropy_nonce binary(12) not null,
   
   encrypted_dek blob not null,
   dek_nonce binary(12) not null,

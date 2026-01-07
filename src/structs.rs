@@ -21,6 +21,15 @@ pub struct Creds {
     pub password: String,
 }
 
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct EncryptedWallet {
+    encrypted_seed: String,
+    seed_nonce: String,
+    encrypted_dek: String,
+    dek_nonce: String,
+    kek_version: u8,
+}
+
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct UserData {
